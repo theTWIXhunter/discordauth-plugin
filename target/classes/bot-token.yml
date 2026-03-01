@@ -1,0 +1,7 @@
+# Discord Bot Token Configuration
+# Never share your bot token publicly!
+# Our support team will never ask for your bot token.
+
+# More information about setting up the discord bot: https://thetwixhunter.nekoweb.org/discordauth/guides/initial-setup.html
+
+bot-token: "PUT_YOUR_BOT_TOKEN_HERE"

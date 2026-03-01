@@ -1,0 +1,154 @@
+# ============================================================================
+# DEFAULT LANGUAGE FILE - DO NOT EDIT!
+# ============================================================================
+# This file is automatically regenerated on every server restart.
+# Any changes you make to this file will be lost.
+#
+# To customize messages:
+# 1. Copy this file to a new file (e.g., en-uk.yml, en-us.yml, nl-nl.yml)
+# 2. Edit your custom file as needed
+# 3. Set the "language" option in config.yml to your custom file name
+#
+# This file serves as:
+# - A reference for all available message keys
+# - A fallback when messages are missing from your custom language file
+# ============================================================================
+
+# Prefix used before all messages
+prefix: "&6[DiscordAuth]&r "
+
+# Messages sent to players
+messages:
+  # Join messages
+  already-verified: "&a✓ You are already verified!"
+  verification-prompt: |
+   §e═══════════════════════════════════§r
+   §6§lPlease Link your discord like explained below:§r
+   §eUse§b§l /dcadd username§r§e or sent your username§r
+   §e§o(replace \"username\" with your discord username)§r
+   
+   c§l  Need help?§r§9 Click Here§r
+   §c§l Don't have discord?§r§e use§b§l /no_discord§r§e to use
+   alternative methods like a password.§r
+   §e═══════════════════════════════════
+  verification-prompt-with-password: |
+   &e═══════════════════════════════════
+   &eWelcome! Please register your account.
+   &bOption 1: Link Discord &7- Enter your Discord User ID or @mention
+   &7Example: 123456789012345678 or @username
+   &bOption 2: Password Only &7- Enter a secure password (8+ characters)
+   &7Example: MySecurePass123!
+   &e═══════════════════════════════════
+  
+  # Discord ID input
+  invalid-discord-id: "&cInvalid Discord User ID format! Please enter a valid numeric ID or @mention."
+  invalid-password-registration: "&cPassword must be at least 8 characters long!"
+  password-registration-success: "&a✓ Account registered with password! You're all set!"
+  verification-code-sent: "&a✓ Verification code sent to your Discord DMs!"
+  verification-code-sent-details: "&7Check your Discord messages and enter the 4-digit code in chat. &eOr enter your backup password if you have one."
+  dm-failed: "&cCouldn't send you a DM on Discord."
+  dm-failed-instructions: "&7Please make sure your DMs are open, or join our Discord server:"
+  
+  # Verification code input
+  enter-verification-code: "&ePlease enter the 4-digit verification code from Discord:"
+  invalid-code-format: "&cInvalid code format! Please enter a 4-digit number."
+  verification-failed: "&cVerification failed! Incorrect code or password."
+  verification-success: "&a✓ Successfully verified! Welcome to the server!"
+  
+  # Chat lockdown messages
+  chat-disabled: "&cYou cannot chat until you verify your Discord account!"
+  
+  # Command messages
+  reload-success: "&aConfiguration reloaded successfully!"
+  unlink-success: "&aYour Discord account has been unlinked. Please rejoin to re-verify."
+  unlink-target-success: "&aUnlinked {player}'s Discord account."
+  logout-success: "&aYou have been logged out. Please rejoin to re-verify."
+  logout-target-success: "&aLogged out {player}."
+  player-not-found: "&cPlayer not found! Make sure they have joined at least once."
+  no-permission: "&cYou don't have permission to use this command!"
+  
+  # Password reset messages
+  password-reset-console-tip: "&7Tip: Run this command from console to see the temporary password."
+  password-reset-console-required: "&eRun this command from console to see the password and provide it manually."
+  password-reset-password-only-ingame: "&c✗ Player {player} uses password-only authentication (no Discord link).\\n&eRun this command from console to reset their password."
+  admin-password-reset-notification: "&e✓ An administrator has reset your password!\\n&7Check your Discord DMs for the temporary password."
+  admin-password-reset-notification-no-discord: "&e✓ An administrator has reset your password!\\n&7Contact an administrator to receive your new password."
+  
+  # Console-specific messages (no color codes)
+  password-reset-admin-success-console: |
+   ✓ Password reset sent to {player}'s Discord!
+   ═══════════════════════════════════════
+   Temporary password for {player}: {password}
+   ═══════════════════════════════════════
+
+  password-reset-admin-failed-console: |
+   ✗ Failed to send password reset to Discord!
+   Player may have DMs disabled.
+   ═══════════════════════════════════════
+   Discord DM failed. Temporary password: {password}
+   Please provide this password to {player} manually.
+   ═══════════════════════════════════════
+
+  password-reset-admin-passwordonly-console: |
+   ✗  {player} does not have discord-linked account.
+   ═══════════════════════════════════════
+   Temporary password: {password}
+   Please provide this password to {player} manually.
+   ═══════════════════════════════════════
+  
+  # Kick message
+  kick-message: "You failed verification. Please rejoin and enter the correct code."
+  verification-timeout: "&cVerification timeout! You took too long to verify."
+  kick-timeout-message: "Verification timeout. You didn't verify within the time limit. Please rejoin to try again."
+  
+  # Bot token error
+  bot-token-not-configured: "&c&lSERVER CONFIGURATION ERROR!\n\n&7The Discord bot token is not configured properly.\n&7Please contact a server administrator.\n\n&eSetup Guide: &bhttps://thetwixhunter.nekoweb.org/discordauth/guides/initial-setup.html"
+  kick-bot-token-error: "Server configuration error: Discord bot token not configured. Please contact a server administrator or check https://thetwixhunter.nekoweb.org/discordauth/guides/initial-setup.html"
+  
+  # Account limit messages
+  max-accounts-reached: "&c&lAccount Limit Reached!\n&7This Discord account has reached the maximum of &e{max} &7Minecraft accounts.\n\n&7Linked accounts:\n{accounts}\n\n&7Please unlink an existing account using &e/discordauth unlink &7before linking a new one."
+  kick-max-accounts: "Account limit reached. This Discord account already has {max} linked Minecraft accounts. Please unlink one before linking a new account."
+
+# Discord DM messages (sent via Discord bot)
+# Available placeholders: {code} (verification code), {player} (minecraft playername), {server} (server name), {max} (maximum accounts/discord), {accounts} (accounts is a newline-separated list of linked accounts)
+discord:
+  # First-time verification embed (when player links account for the first time)
+  first-join-embed:
+    color: 13224211
+    title: "**`{code}`** is your verification code for **{server}**"
+    description: |
+      This discord account will be linked to {player}.
+      
+      **Please enter the following code in-game to complete verification: `{code}`**
+      more information can be found [here (click me)](<https://thetwixhunter.nekoweb.org/discordauth/guides/verification.html>)
+      
+      ### Next steps:
+      - Set a recovery password by running `/pw set <password> <confirm_password>` in-game to make sure that you never loose your account.
+      _ _
+      **❌ Wasn't you?** Run `/unlink {player}` below to unlink this account.
+  
+  # Regular verification embed (when player re-verifies from new IP)
+  verification-embed:
+    color: 64367
+    title: "**`{code}`** is your verification code for **{server}**"
+    description: |
+      This code got requested by {player}.
+      
+      Please enter this code in-game to complete verification, more information can be found [here (click me)](<https://thetwixhunter.nekoweb.org/discordauth/guides/verification.html>).
+      
+      ﻿:x:﻿ **wasn't you?** Run `/unlink {player}` below to unlink this account.
+  
+  # Password reset embed (when player uses /password forgot)
+  password-reset-embed:
+    color: 13440791
+    title: "Password reset - {server}"
+    description: |
+      The backup password for {player} has been reset.
+      
+      **New Temporary Password: `{password}`**
+      
+      **NEXT STEPS:**
+      • You can use this password to login, just enter it in the verification prompt.
+      • **Change it immediately!** using `/pw change <old> <new> <confirm>`.
+      
+      **❌ Wasn't you?** Contact one of your server administrators!

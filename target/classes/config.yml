@@ -1,0 +1,144 @@
+# +--------------------------------------------------------------------------+
+# |              ------====== DISCORD AUTH PLUGIN ======------               |
+# |                       --- By TheTWIXhunter ---                           |
+# +--------------------------------------------------------------------------+
+# |                                                                          |                                          |
+# | More information about this config file can be found here:               |
+# | https://thetwixhunter.nekoweb.org/discordauth/guides/configuration.html  |
+# |                                                                          |
+# | !!!!    ---MAKE SURE TO SET THE BOT TOKEN IN bottoken.yml---        !!!! |
+# |                                                                          |
+# | The initial setup guide can be found here:                               |
+# | https://thetwixhunter.nekoweb.org/discordauth/guides/initial-setup.html  |
+# +--------------------------------------------------------------------------+
+
+
+# +--------------------------------------------------------------------------+
+# |              ------====== GENERAL SETTINGS ======------                  |
+# +--------------------------------------------------------------------------+
+
+# Server name (shown in Discord messages)
+server-name: "My Minecraft Server"
+
+# Discord server invite link (shown when DMs fail)
+discord-invite: "https://discord.gg/YOUR_INVITE_CODE"
+
+# Maximum number of Minecraft accounts allowed per Discord account (0 = unlimited)
+max-accounts-per-discord: 0
+
+# Language file to use (from the languages folder)
+# Available: en-uk.yml, nl-be.yml
+language: "en-uk"
+
+# Verification timeout in seconds (0 to disable, recommended: 600 for 10 minutes)
+# Players will be kicked if they don't verify within this time
+verification-timeout: 600
+
+
+# +--------------------------------------------------------------------------+
+# |              ------====== VERIFICATION METHODS ======------              |
+# +--------------------------------------------------------------------------+
+# |                                                                          |                                          |
+# | Control how players verify their accounts (Discord, password, etc.)      |
+# |                                                                          |
+# +--------------------------------------------------------------------------+
+
+# Discord verification (default method)
+# Allow registration with a Discord account
+# When enabled, players can register by entering their User ID or by linking their account with Discord
+allow-discord-registration: true
+
+# Allow registration without Discord account
+# When enabled, players can register using just a password instead of linking Discord
+# Players enter a password during registration instead of a Discord ID
+allow-password-only-registration: true
+
+# Allow players to login with password even when they have Discord linked
+# (for when players lose Discord access)
+# Players can set a password and use it to verify instead of Discord when they lost access to their account
+enable-backup-password: true
+
+# +--------------------------------------------------------------------------+
+# |          ------====== AUTHENTICATION SKIP SETTINGS ======------          |
+# +--------------------------------------------------------------------------+
+# | Authentication Skip Settings                                             |
+# | Control who needs to authenticate and who can skip the login process     |
+# |                                                                          |
+# | - A user does not need to authenticate if any of the enabled skip rules  |
+# | apply to them                                                            |
+# | - A user won't have to register if "require-registration" is false for   |
+# | !any! of the skip rules that apply to them.                              |
+# | (They will still be required to register if all of them are False)       |
+# |                                                                          |
+# +--------------------------------------------------------------------------+
+
+authentication-skip:
+  # Skip authentication for premium (Microsoft/Mojang authenticated) accounts
+  # Only applies when the player joins with proper Microsoft authentication
+  # Offline mode players will still be required to login
+  skip-premium-accounts:
+    enabled: true
+    # Require premium accounts to still register initially (even if they skip login later)
+    require-registration: true
+  
+  # Skip authentication when player's IP matches their last known IP
+  # This provides convenience for players connecting from the same location
+  skip-matching-ip:
+    enabled: true
+    # Require players to still register initially (even if they skip login later)
+    require-registration: true
+  
+  # Skip authentication for specific players (DEBUG ONLY - NOT RECOMMENDED)
+  # Players listed here will never be asked to authenticate
+  # Use player usernames (case-sensitive)
+  skip-specific-players:
+    enabled: false
+    # Require these players to still register initially
+    require-registration: false
+    players:
+      - "DebugPlayer1"
+      - "TestAccount"
+  
+  # Force authentication overrides
+  # Players matching these criteria MUST authenticate even if skip rules apply
+  force-authentication:
+    # Force OPs to always authenticate regardless of skip rules
+    force-ops: true
+    # Force players with specific permission to always authenticate
+    # Permission: discordauth.force.login
+    force-permission: true
+
+# +---------------------------------------------------------------------------+
+# |       ------====== EXPIREMENTAL/ADVANCED SETTINGS ======------            |
+# +---------------------------------------------------------------------------+
+# | !!!   DO NOT EDIT THESE SETTINGS UNLESS YOU KNOW WHAT YOU ARE DOING   !!! |
+# | These Settings are Experimental and probably unstable or broken           |
+# +---------------------------------------------------------------------------+
+
+# Discord role sync (disabled by default)
+# Grants Minecraft permissions based on Discord roles
+discord-role-sync:
+  enabled: false
+  # Map Discord role IDs to Minecraft permission groups
+  # Format: "DISCORD_ROLE_ID": "permission.group"
+  role-mappings:
+    "123456789012345678": "vip"
+    "987654321098765432": "moderator"
+
+# DiscordSRV compatibility
+# Import existing accounts from DiscordSRV
+discordsrv-compatibility:
+  enabled: false
+  # Auto-import accounts on first run
+  auto-import: true
+  # Path to DiscordSRV config (leave empty for default)
+  config-path: "../DiscordSRV/config.yml"
+  # Path to DiscordSRV accounts file (leave empty for default)
+  accounts-path: "../DiscordSRV/accounts.aof"
+
+# Bot token File, supports .yml or .txt formats
+bot-token-file: "bot-token.yml"
+
+# this setting will override the bot-token-file if it is used
+# bot-token: "DO_NOT_USE_THIS"
+# Please don't use this setting, just put the token in bot-token.yml.

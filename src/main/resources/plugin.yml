@@ -1,0 +1,32 @@
+name: DiscordAuth
+main: me.theTWIXhunter.discordauth.DiscordAuthPlugin
+version: 1.1.0
+api-version: 1.21
+author: theTWIXhunter
+description: "Discord verification plugin - asks for discord username, sends 4-digit code via bot DM or just use a password if desired."
+commands:
+  discordauth:
+    description: "Manage DiscordAuth - reload, unlink, logout"
+    usage: "/discordauth <reload|unlink|logout>"
+    permission: discordauth.use
+    aliases: [dauth]
+  password:
+    description: "Manage backup password"
+    usage: "/password <set|change|forgot>"
+    permission: discordauth.use
+    aliases: [pw, passwd]
+  logout:
+    description: "Logout from Discord verification"
+    usage: "/logout [player]"
+    permission: discordauth.use
+  unlink:
+    description: "Unlink your Discord account"
+    usage: "/unlink [player]"
+    permission: discordauth.use
+permissions:
+  discordauth.use:
+    description: "Allows use of basic DiscordAuth commands"
+    default: true
+  discordauth.admin:
+    description: "Allows use of admin DiscordAuth commands"
+    default: op

@@ -1,0 +1,119 @@
+# Nederlands (België) Taalbestand
+# Voorvoegsel gebruikt voor alle berichten
+prefix: "&6[DiscordAuth]&r "
+
+# Berichten naar spelers
+messages:
+  # Aanmeldberichten
+  already-verified: "&a✓ Je bent al geverifieerd!"
+  verification-prompt: |
+   &e═══════════════════════════════════
+   &eWelkom! Verifieer je Discord-account.
+   &bTyp je Discord Gebruikers-ID (numeriek) of @vermelding in de chat.
+   &7Voorbeeld: 123456789012345678 of @gebruikersnaam
+   &e═══════════════════════════════════
+  verification-prompt-with-password: |
+   &e═══════════════════════════════════
+   &eWelkom! Registreer je account.
+   &bOptie 1: Discord Koppelen &7- Voer je Discord Gebruikers-ID of @vermelding in
+   &7Voorbeeld: 123456789012345678 of @gebruikersnaam
+   &bOptie 2: Alleen Wachtwoord &7- Voer een veilig wachtwoord in (8+ tekens)
+   &7Voorbeeld: MijnVeiligWachtwoord123!
+   &e═══════════════════════════════════
+  
+  # Discord ID invoer
+  invalid-discord-id: "&cOngeldige Discord Gebruikers-ID! Voer een geldige numerieke ID of @vermelding in."
+  invalid-password-registration: "&cWachtwoord moet minstens 8 tekens lang zijn!"
+  password-registration-success: "&a✓ Account geregistreerd met wachtwoord! Je bent klaar!"
+  verification-code-sent: "&a✓ Verificatiecode verzonden naar je Discord DM's!"
+  verification-code-sent-details: "&7Controleer je Discord-berichten en voer de 4-cijferige code in de chat in. &eOf voer je back-up wachtwoord in als je er een hebt."
+  dm-failed: "&cKon je geen DM sturen op Discord."
+  dm-failed-instructions: "&7Zorg ervoor dat je DM's open zijn, of join onze Discord server:"
+  
+  # Verificatiecode invoer
+  enter-verification-code: "&eVoer de 4-cijferige verificatiecode van Discord in:"
+  invalid-code-format: "&cOngeldig code formaat! Voer een 4-cijferig nummer in."
+  verification-failed: "&cVerificatie mislukt! Onjuiste code of wachtwoord."
+  verification-success: "&a✓ Succesvol geverifieerd! Welkom op de server!"
+  
+  # Chat vergrendelingsberichten
+  chat-disabled: "&cJe kunt niet chatten totdat je je Discord-account hebt geverifieerd!"
+  
+  # Commando berichten
+  reload-success: "&aConfiguratie succesvol herladen!"
+  unlink-success: "&aJe Discord-account is ontkoppeld. Herverbind om opnieuw te verifiëren."
+  unlink-target-success: "&aDiscord-account van {player} ontkoppeld."
+  logout-success: "&aJe bent uitgelogd. Herverbind om opnieuw te verifiëren."
+  logout-target-success: "&a{player} uitgelogd."
+  player-not-found: "&cSpeler niet gevonden! Zorg er voor dat ze minstens één keer verbonden zijn geweest."
+  no-permission: "&cJe hebt geen toestemming om dit commando te gebruiken!"
+  
+  # Wachtwoord reset berichten
+  password-reset-console-tip: "&7Tip: Voer dit commando uit vanuit de console om het tijdelijke wachtwoord te zien."
+  password-reset-console-required: "&eVoer dit commando uit vanuit de console om het wachtwoord te zien en handmatig te verstrekken."
+  password-reset-password-only-ingame: "&c✗ Speler {player} gebruikt alleen wachtwoordauthenticatie (geen Discord-koppeling).\\n&eVoer dit commando uit vanuit de console om het wachtwoord te resetten."
+  admin-password-reset-notification: "&e✓ Een beheerder heeft je wachtwoord gereset!\\n&7Bekijk je Discord DM's voor het tijdelijke wachtwoord."
+  admin-password-reset-notification-no-discord: "&e✓ Een beheerder heeft je wachtwoord gereset!\\n&7Neem contact op met een beheerder om je nieuwe wachtwoord te ontvangen."
+  
+  # Console-specifieke berichten (geen kleurcodes)
+  password-reset-admin-success-console: "✓ Wachtwoord reset verzonden naar {player}'s Discord!\n═══════════════════════════════════════\nTijdelijk wachtwoord voor {player}: {password}\n═══════════════════════════════════════"
+  password-reset-admin-failed-console: "✗ Verzenden van wachtwoord reset naar Discord mislukt!\nSpeler heeft mogelijk DM's uitgeschakeld.\n═══════════════════════════════════════\nDiscord DM mislukt. Tijdelijk wachtwoord: {password}\nVerstrek dit wachtwoord handmatig aan {player}.\n═══════════════════════════════════════"
+  password-reset-admin-passwordonly-console: "✓ Wachtwoord reset voor {player} (alleen-wachtwoord account).\n═══════════════════════════════════════\nTijdelijk wachtwoord: {password}\nVerstrek dit wachtwoord handmatig aan {player}.\n═══════════════════════════════════════"
+  
+  # Kick bericht
+  kick-message: "Verificatie mislukt. Herverbind en voer de juiste code in."
+  verification-timeout: "&cVerificatie timeout! Je hebt te lang gewacht om te verifiëren."
+  kick-timeout-message: "Verificatie timeout. Je hebt niet binnen de tijdslimiet geverifieerd. Herverbind om opnieuw te proberen."
+  
+  # Bot token error
+  bot-token-not-configured: "&c&lSERVER CONFIGURATIE FOUT!\n\n&7De Discord bot token is niet correct geconfigureerd.\n&7Neem contact op met een server administrator.\n\n&eSetup Gids: &bhttps://thetwixhunter.nekoweb.org/discordauth/guides/initial-setup.html"
+  kick-bot-token-error: "Server configuratie fout: Discord bot token niet geconfigureerd. Neem contact op met een server administrator of bekijk https://thetwixhunter.nekoweb.org/discordauth/guides/initial-setup.html"
+  
+  # Accountlimiet berichten
+  max-accounts-reached: "&c&lAccountlimiet bereikt!\n&7Dit Discord-account heeft het maximum van &e{max} &7Minecraft-accounts bereikt.\n\n&7Gekoppelde accounts:\n{accounts}\n\n&7Ontkoppel een bestaand account met &e/discordauth unlink &7voordat je een nieuw account koppelt."
+  kick-max-accounts: "Accountlimiet bereikt. Dit Discord-account heeft al {max} gekoppelde Minecraft-accounts. Ontkoppel er één voordat je een nieuw account koppelt."
+
+# Discord DM berichten (verzonden via Discord bot)
+# Beschikbare placeholders: {code}, {player}, {server}
+discord:
+  # Eerste verificatie embed (wanneer speler account voor het eerst koppelt)
+  first-join-embed:
+    color: 13224211
+    title: "**`{code}`** is je verificatiecode voor **{server}**"
+    description: |
+      Dit discord account wordt gekoppeld aan {player}.
+      
+      **Voer de volgende code in-game in om verificatie te voltooien: `{code}`**
+      meer informatie kan gevonden worden [hier (klik mij)](<https://thetwixhunter.nekoweb.org/discordauth/guides/verification.html>)
+      
+      ### Volgende stappen:
+      - Stel een herstelwachtwoord in door `/pw set <wachtwoord> <bevestig_wachtwoord>` in-game uit te voeren om ervoor te zorgen dat je nooit je account verliest.
+      _ _
+      **❌ Was dit jij niet?** Voer `/unlink {player}` hieronder uit om dit account te ontkoppelen.
+  
+  # Reguliere verificatie embed (wanneer speler opnieuw verifieert vanaf nieuw IP)
+  verification-embed:
+    color: 64367
+    title: "**`{code}`** is je verificatiecode voor **{server}**"
+    description: |
+      Deze code werd aangevraagd door {player}.
+      
+      Voer deze code in-game in om verificatie te voltooien, meer informatie kan gevonden worden [hier (klik mij)](<https://thetwixhunter.nekoweb.org/discordauth/guides/verification.html>).
+      
+      ﻿:x:﻿ **Was dit jij niet?** Voer `/unlink {player}` hieronder uit om dit account te ontkoppelen.
+  
+  # Wachtwoord reset embed (wanneer speler /password forgot gebruikt)
+  password-reset-embed:
+    color: 13440791
+    title: "Wachtwoord reset - {server}"
+    description: |
+      Het back-up wachtwoord voor {player} is gereset.
+      
+      **Nieuw Tijdelijk Wachtwoord: `{password}`**
+      
+      **VOLGENDE STAPPEN:**
+      • Je kunt dit wachtwoord gebruiken om in te loggen, voer het gewoon in bij de verificatie prompt.
+      • **Verander het onmiddellijk!** met `/pw change <oud> <nieuw> <bevestig>`.
+      
+      **❌ Was dit jij niet?** Neem contact op met één van de server administrators!
+

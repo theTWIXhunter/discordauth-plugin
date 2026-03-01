@@ -1,0 +1,15 @@
+me\theTWIXhunter\discordauth\BackupPasswordManager.class
+me\theTWIXhunter\discordauth\DiscordAuthCommand.class
+me\theTWIXhunter\discordauth\UnlinkCommand.class
+me\theTWIXhunter\discordauth\DiscordAuthPlugin.class
+me\theTWIXhunter\discordauth\PlayerDataManager$PlayerRecord.class
+me\theTWIXhunter\discordauth\DialogManager.class
+me\theTWIXhunter\discordauth\Verification.class
+me\theTWIXhunter\discordauth\LogoutCommand.class
+me\theTWIXhunter\discordauth\VerificationManager.class
+me\theTWIXhunter\discordauth\DiscordService$GuildMember.class
+me\theTWIXhunter\discordauth\DiscordService.class
+me\theTWIXhunter\discordauth\LanguageManager.class
+me\theTWIXhunter\discordauth\JoinListener.class
+me\theTWIXhunter\discordauth\PasswordCommand.class
+me\theTWIXhunter\discordauth\PlayerDataManager.class
