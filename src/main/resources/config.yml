@@ -58,6 +58,10 @@ allow-password-only-registration: true
 # Players can set a password and use it to verify instead of Discord when they lost access to their account
 enable-backup-password: true
 
+# Kick players after X failed login attempts (default 3, 0 to disable)
+# This helps prevent brute-force attacks on accounts
+max-login-attempts: 3
+
 
 # +--------------------------------------------------------------------------+
 # |          ------====== AUTHENTICATION SKIP SETTINGS ======------          |
