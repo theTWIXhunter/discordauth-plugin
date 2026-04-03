@@ -35,6 +35,7 @@ public class JoinListener implements Listener {
     private final LanguageManager lang;
     private final java.util.Map<java.util.UUID, GameMode> savedGameModes = new java.util.HashMap<>();
     private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> timeoutTasks = new java.util.HashMap<>();
+    private final java.util.Map<java.util.UUID, Integer> failedLoginAttempts = new java.util.HashMap<>();
 
     public JoinListener(DiscordAuthPlugin plugin, VerificationManager verificationManager, PlayerDataManager dataManager, BackupPasswordManager passwordManager, DialogManager dialogManager) {
         this.plugin = plugin;
@@ -48,6 +49,7 @@ public class JoinListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        failedLoginAttempts.remove(player.getUniqueId());
         
         // Check if bot token is configured and valid - show error but don't kick
         if (!plugin.getDiscordService().isBotTokenValid()) {
@@ -154,6 +156,7 @@ public class JoinListener implements Listener {
         // Clean up timeout task when player disconnects
         cancelVerificationTimeout(event.getPlayer().getUniqueId());
         savedGameModes.remove(event.getPlayer().getUniqueId());
+        failedLoginAttempts.remove(event.getPlayer().getUniqueId());
         dialogManager.clearEnteredCode(event.getPlayer().getUniqueId());
     }
     
@@ -179,6 +182,7 @@ public class JoinListener implements Listener {
      * Called by DialogManager when authentication completes.
      */
     public void restorePlayer(Player player) {
+        failedLoginAttempts.remove(player.getUniqueId());
         cancelVerificationTimeout(player.getUniqueId());
         GameMode originalMode = savedGameModes.remove(player.getUniqueId());
         if (originalMode != null) {
@@ -199,6 +203,44 @@ public class JoinListener implements Listener {
     public void kickUnverifiedPlayer(Player player) {
         String kickMsg = lang.getKickMessage();
         org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            failedLoginAttempts.remove(player.getUniqueId());
+            cancelVerificationTimeout(player.getUniqueId());
+            savedGameModes.remove(player.getUniqueId());
+            player.kick(Component.text(kickMsg));
+        }, 1L);
+    }
+
+    /**
+     * Returns the configured maximum failed login attempts before a kick.
+     * A value <= 0 disables this protection.
+     */
+    public int getMaxLoginAttempts() {
+        return plugin.getConfig().getInt("max-login-attempts", 3);
+    }
+
+    /**
+     * Increments and returns the failed password-attempt counter for this player.
+     */
+    public int incrementFailedLoginAttempts(java.util.UUID uuid) {
+        int updated = failedLoginAttempts.getOrDefault(uuid, 0) + 1;
+        failedLoginAttempts.put(uuid, updated);
+        return updated;
+    }
+
+    /**
+     * Clears any stored failed-attempt count for this player.
+     */
+    public void resetFailedLoginAttempts(java.util.UUID uuid) {
+        failedLoginAttempts.remove(uuid);
+    }
+
+    /**
+     * Kicks a player after they exceeded the configured failed login attempt limit.
+     */
+    public void kickForFailedLoginAttempts(Player player) {
+        String kickMsg = "Too many failed login attempts.";
+        org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            failedLoginAttempts.remove(player.getUniqueId());
             cancelVerificationTimeout(player.getUniqueId());
             savedGameModes.remove(player.getUniqueId());
             player.kick(Component.text(kickMsg));

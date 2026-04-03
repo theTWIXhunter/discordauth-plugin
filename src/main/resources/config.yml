@@ -58,6 +58,7 @@ allow-password-only-registration: true
 # Players can set a password and use it to verify instead of Discord when they lost access to their account
 enable-backup-password: true
 
+
 # +--------------------------------------------------------------------------+
 # |          ------====== AUTHENTICATION SKIP SETTINGS ======------          |
 # +--------------------------------------------------------------------------+
