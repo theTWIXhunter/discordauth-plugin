@@ -532,13 +532,34 @@ public class DialogManager {
         }
         if (!passwordManager.hasPassword(player.getUniqueId()) ||
                 !passwordManager.verifyPassword(player.getUniqueId(), password)) {
-            showPasswordLoginDialog(player, "Incorrect password! Please try again.");
+            int maxAttempts = joinListener != null ? joinListener.getMaxLoginAttempts() : plugin.getConfig().getInt("max-login-attempts", 3);
+            int failedAttempts = joinListener != null ? joinListener.incrementFailedLoginAttempts(player.getUniqueId()) : 1;
+
+            if (maxAttempts > 0 && failedAttempts >= maxAttempts) {
+                player.sendMessage(Component.text("Too many failed login attempts.", NamedTextColor.RED));
+                if (joinListener != null) {
+                    joinListener.kickForFailedLoginAttempts(player);
+                } else {
+                    player.kick(Component.text("Too many failed login attempts."));
+                }
+                return;
+            }
+
+            if (maxAttempts > 0) {
+                int remainingAttempts = Math.max(0, maxAttempts - failedAttempts);
+                showPasswordLoginDialog(player, "Incorrect password! " + remainingAttempts + " attempt(s) remaining.");
+            } else {
+                showPasswordLoginDialog(player, "Incorrect password! Please try again.");
+            }
             return;
         }
         // Correct — update IP record
         String currentIp = joinListener != null ? joinListener.getPlayerIp(player) : "0.0.0.0";
         dataManager.setRecord(new PlayerDataManager.PlayerRecord(
             player.getUniqueId(), "PASSWORD_ONLY", currentIp));
+        if (joinListener != null) {
+            joinListener.resetFailedLoginAttempts(player.getUniqueId());
+        }
         player.sendMessage(Component.text("✓ Logged in with password!", NamedTextColor.GREEN));
         plugin.getLogger().info(player.getName() + " logged in with password.");
         if (joinListener != null) {
@@ -826,8 +847,29 @@ public class DialogManager {
         }
         if (!passwordManager.hasPassword(player.getUniqueId()) ||
                 !passwordManager.verifyPassword(player.getUniqueId(), password)) {
-            showBackupPasswordDialogFor2FA(player, "Incorrect password! Please try again.");
+            int maxAttempts = joinListener != null ? joinListener.getMaxLoginAttempts() : plugin.getConfig().getInt("max-login-attempts", 3);
+            int failedAttempts = joinListener != null ? joinListener.incrementFailedLoginAttempts(player.getUniqueId()) : 1;
+
+            if (maxAttempts > 0 && failedAttempts >= maxAttempts) {
+                player.sendMessage(Component.text("Too many failed login attempts.", NamedTextColor.RED));
+                if (joinListener != null) {
+                    joinListener.kickForFailedLoginAttempts(player);
+                } else {
+                    player.kick(Component.text("Too many failed login attempts."));
+                }
+                return;
+            }
+
+            if (maxAttempts > 0) {
+                int remainingAttempts = Math.max(0, maxAttempts - failedAttempts);
+                showBackupPasswordDialogFor2FA(player, "Incorrect password! " + remainingAttempts + " attempt(s) remaining.");
+            } else {
+                showBackupPasswordDialogFor2FA(player, "Incorrect password! Please try again.");
+            }
             return;
+        }
+        if (joinListener != null) {
+            joinListener.resetFailedLoginAttempts(player.getUniqueId());
         }
         // Correct — save using the pending verification's data, preserving all Discord IDs
         Verification pending = verificationManager.getPending(player.getUniqueId());
@@ -1052,6 +1094,9 @@ public class DialogManager {
 
     private void handleCodeSubmission(Player player, String code) {
         if (verificationManager.verifyCode(player.getUniqueId(), code)) {
+            if (joinListener != null) {
+                joinListener.resetFailedLoginAttempts(player.getUniqueId());
+            }
             boolean fromDashboard = dashboardContextPlayers.remove(player.getUniqueId());
             if (pendingPasswordResets.remove(player.getUniqueId())) {
                 // Came here via "Reset password" — show password reset setup instead of logging in
@@ -1095,12 +1140,33 @@ public class DialogManager {
                 showMainDashboardDialog(player);
             }
         } else {
-            player.sendMessage(Component.text("Incorrect code! Try again.", NamedTextColor.RED));
+            int maxAttempts = joinListener != null ? joinListener.getMaxLoginAttempts() : plugin.getConfig().getInt("max-login-attempts", 3);
+            int failedAttempts = joinListener != null ? joinListener.incrementFailedLoginAttempts(player.getUniqueId()) : 1;
+
+            if (maxAttempts > 0 && failedAttempts >= maxAttempts) {
+                player.sendMessage(Component.text("Too many failed login attempts.", NamedTextColor.RED));
+                if (joinListener != null) {
+                    joinListener.kickForFailedLoginAttempts(player);
+                } else {
+                    player.kick(Component.text("Too many failed login attempts."));
+                }
+                return;
+            }
+
+            String retryMessage = "Incorrect code! Try again.";
+            String dialogMessage = "Incorrect code — please try again.";
+            if (maxAttempts > 0) {
+                int remainingAttempts = Math.max(0, maxAttempts - failedAttempts);
+                retryMessage = "Incorrect code! " + remainingAttempts + " attempt(s) remaining.";
+                dialogMessage = "Incorrect code — " + remainingAttempts + " attempt(s) remaining.";
+            }
+
+            player.sendMessage(Component.text(retryMessage, NamedTextColor.RED));
             enteredCodes.put(player.getUniqueId(), "");
             if (dataManager.getPreferKeypad(player.getUniqueId())) {
-                renderCodeKeypad(player, "", "Incorrect code — please try again.");
+                renderCodeKeypad(player, "", dialogMessage);
             } else {
-                renderCodeTextField(player, "Incorrect code — please try again.");
+                renderCodeTextField(player, dialogMessage);
             }
         }
     }
