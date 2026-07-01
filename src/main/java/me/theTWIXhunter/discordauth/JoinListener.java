@@ -270,13 +270,19 @@ public class JoinListener implements Listener {
         boolean matchedAny = false;
 
         if (player.isOp()) {
-            matchedAny = true;
-            result = combineSkipModes(result, parseSkipMode(cfg.getString("authentication-skip.operators", "disabled")));
+            AuthSkipMode groupMode = parseSkipMode(cfg.getString("authentication-skip.operators", "disabled"));
+            if (groupMode != null) {
+                matchedAny = true;
+                result = combineSkipModes(result, groupMode);
+            }
         }
 
         if (record != null && record.discordId != null && currentIp.equals(record.lastIp)) {
-            matchedAny = true;
-            result = combineSkipModes(result, parseSkipMode(cfg.getString("authentication-skip.known-ip", "disabled")));
+            AuthSkipMode groupMode = parseSkipMode(cfg.getString("authentication-skip.known-ip", "disabled"));
+            if (groupMode != null) {
+                matchedAny = true;
+                result = combineSkipModes(result, groupMode);
+            }
         }
 
         AuthSkipMode specificPlayerMode = resolveSpecificPlayerMode(player);
@@ -286,13 +292,19 @@ public class JoinListener implements Listener {
         }
 
         if (isBedrockPlayer(player)) {
-            matchedAny = true;
-            result = combineSkipModes(result, parseSkipMode(cfg.getString("authentication-skip.bedrock-players", "disabled")));
+            AuthSkipMode groupMode = parseSkipMode(cfg.getString("authentication-skip.bedrock-players", "disabled"));
+            if (groupMode != null) {
+                matchedAny = true;
+                result = combineSkipModes(result, groupMode);
+            }
         }
 
         if (isPremiumPlayer(player)) {
-            matchedAny = true;
-            result = combineSkipModes(result, parseSkipMode(cfg.getString("authentication-skip.premium-users", "disabled")));
+            AuthSkipMode groupMode = parseSkipMode(cfg.getString("authentication-skip.premium-users", "disabled"));
+            if (groupMode != null) {
+                matchedAny = true;
+                result = combineSkipModes(result, groupMode);
+            }
         }
 
         return matchedAny ? result : defaultMode;
@@ -320,13 +332,19 @@ public class JoinListener implements Listener {
         boolean matchedAny = false;
 
         if (player.isOp()) {
-            matchedAny = true;
-            result = combinePasswordAccessModes(result, parsePasswordAccessMode(cfg.getString("authentication-skip.operators-password-feature", "disabled")));
+            PasswordAccessMode groupMode = parsePasswordAccessMode(cfg.getString("authentication-skip.operators-password-feature", "disabled"));
+            if (groupMode != null) {
+                matchedAny = true;
+                result = combinePasswordAccessModes(result, groupMode);
+            }
         }
 
         if (record != null && record.discordId != null && currentIp.equals(record.lastIp)) {
-            matchedAny = true;
-            result = combinePasswordAccessModes(result, parsePasswordAccessMode(cfg.getString("authentication-skip.known-ip-password-feature", "disabled")));
+            PasswordAccessMode groupMode = parsePasswordAccessMode(cfg.getString("authentication-skip.known-ip-password-feature", "disabled"));
+            if (groupMode != null) {
+                matchedAny = true;
+                result = combinePasswordAccessModes(result, groupMode);
+            }
         }
 
         PasswordAccessMode specificPlayerMode = resolveSpecificPlayerPasswordAccessMode(player);
@@ -336,13 +354,19 @@ public class JoinListener implements Listener {
         }
 
         if (isBedrockPlayer(player)) {
-            matchedAny = true;
-            result = combinePasswordAccessModes(result, parsePasswordAccessMode(cfg.getString("authentication-skip.bedrock-players-password-feature", "disabled")));
+            PasswordAccessMode groupMode = parsePasswordAccessMode(cfg.getString("authentication-skip.bedrock-players-password-feature", "disabled"));
+            if (groupMode != null) {
+                matchedAny = true;
+                result = combinePasswordAccessModes(result, groupMode);
+            }
         }
 
         if (isPremiumPlayer(player)) {
-            matchedAny = true;
-            result = combinePasswordAccessModes(result, parsePasswordAccessMode(cfg.getString("authentication-skip.premium-users-password-feature", "disabled")));
+            PasswordAccessMode groupMode = parsePasswordAccessMode(cfg.getString("authentication-skip.premium-users-password-feature", "disabled"));
+            if (groupMode != null) {
+                matchedAny = true;
+                result = combinePasswordAccessModes(result, groupMode);
+            }
         }
 
         return matchedAny ? result : defaultMode;

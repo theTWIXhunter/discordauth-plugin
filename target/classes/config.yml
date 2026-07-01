@@ -64,6 +64,7 @@ max-login-attempts: 3
 # +--------------------------------------------------------------------------+
 
 authentication-skip:
+# ----- DEFAULTS -----
   # Top-level fallback used whenever a player doesn't match any group.
   default-mode: "force"
 
@@ -71,6 +72,7 @@ authentication-skip:
   # Values: discord, password, both, disabled
   password-feature-default: "both"
 
+ # ----- GROUPS -----
   # Operators can be forced, skipped, or disabled
   operators: "force"
   operators-password-feature: "disabled"
