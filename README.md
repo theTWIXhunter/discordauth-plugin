@@ -10,7 +10,7 @@ A Discord verification authentication plugin for Minecraft servers (Paper 1.21+)
 - **Multi-Language Support**: Built-in support for multiple languages (English UK, Dutch Belgium)
 - **Smart Authentication Skip**: Skip login for premium accounts or matching IPs (configurable)
 - **Account Management**: Players can unlink Discord accounts, logout, and manage passwords
-- **Security Options**: 
+- **Security Options**:
   - Max accounts per Discord account limit
   - Verification timeout
   - Force authentication for OPs/specific permissions
@@ -46,15 +46,21 @@ Edit `config.yml` to customize the plugin:
 - `verification-timeout`: Timeout in seconds before kicking unverified players (0 to disable)
 
 ### Verification Methods
-- `allow-discord-registration`: Enable Discord account linking (default: true)
-- `allow-password-only-registration`: Allow registration with just a password (default: true)
-- `enable-backup-password`: Allow backup passwords for Discord-linked accounts (default: true)
+- Discord registration is always available.
+- Password registration and backup password access are controlled under the Authentication Skip Rules section.
 
 ### Authentication Skip Rules
-- `skip-premium-accounts`: Skip auth for Microsoft/Mojang authenticated players
-- `skip-matching-ip`: Skip auth when IP matches last known IP
-- `skip-specific-players`: Skip auth for specific usernames (debug only)
-- `force-authentication`: Force OPs or permission holders to always authenticate
+- `default-mode`: Fallback mode used when a player does not match any group
+- `password-feature-default`: Fallback password access mode used when a player does not match any group
+- `operators`: Control how operators are handled, or set to `disabled` to ignore the group
+- `operators-password-feature`: Password access for operators (`discord`, `password`, `both`, `disabled`)
+- `known-ip`: Control how players with a matching last IP are handled, or set to `disabled` to ignore the group
+- `known-ip-password-feature`: Password access for players with a matching last IP (`discord`, `password`, `both`, `disabled`)
+- `specific-players`: Per-player overrides using `name`, `mode`, and `password-feature`
+- `bedrock-players`: Control how Floodgate/Geyser players are handled, or set to `disabled` to ignore the group
+- `bedrock-players-password-feature`: Password access for Bedrock players (`discord`, `password`, `both`, `disabled`)
+- `premium-users`: Control how premium Java players are handled, or set to `disabled` to ignore the group
+- `premium-users-password-feature`: Password access for premium Java players (`discord`, `password`, `both`, `disabled`)
 
 ### Experimental Features
 - `discord-role-sync`: Sync Discord roles to Minecraft permissions

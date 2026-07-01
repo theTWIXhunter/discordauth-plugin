@@ -22,25 +22,23 @@ public class PasswordCommand implements CommandExecutor, TabCompleter {
     private final PlayerDataManager dataManager;
     private final BackupPasswordManager passwordManager;
     private final DiscordService discordService;
+    private final JoinListener joinListener;
     private final LanguageManager lang;
     private final SecureRandom random = new SecureRandom();
 
     public PasswordCommand(DiscordAuthPlugin plugin, PlayerDataManager dataManager, 
-                          BackupPasswordManager passwordManager, DiscordService discordService) {
+                          BackupPasswordManager passwordManager, DiscordService discordService,
+                          JoinListener joinListener) {
         this.plugin = plugin;
         this.dataManager = dataManager;
         this.passwordManager = passwordManager;
         this.discordService = discordService;
+        this.joinListener = joinListener;
         this.lang = plugin.getLanguageManager();
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!plugin.getConfig().getBoolean("enable-backup-password", true)) {
-            sender.sendMessage(Component.text("Backup passwords are disabled.", NamedTextColor.RED));
-            return true;
-        }
-
         // Handle admin password reset from console
         if (!(sender instanceof Player)) {
             if (args.length >= 2 && args[0].equalsIgnoreCase("forgot")) {
@@ -51,6 +49,11 @@ public class PasswordCommand implements CommandExecutor, TabCompleter {
         }
 
         Player player = (Player) sender;
+
+        if (joinListener != null && !joinListener.isPasswordFeatureAllowed(player)) {
+            sender.sendMessage(Component.text("Password features are disabled for your account.", NamedTextColor.RED));
+            return true;
+        }
 
         // Check if player is verified
         PlayerDataManager.PlayerRecord record = dataManager.getRecord(player.getUniqueId());

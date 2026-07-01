@@ -43,16 +43,6 @@ verification-timeout: 600
 # |                                                                          |
 # +--------------------------------------------------------------------------+
 
-# Discord verification (default method)
-# Allow registration with a Discord account
-# When enabled, players can register by entering their User ID or by linking their account with Discord
-allow-discord-registration: true
-
-# Allow registration without Discord account
-# When enabled, players can register using just a password instead of linking Discord
-# Players enter a password during registration instead of a Discord ID
-allow-password-only-registration: true
-
 # Allow players to login with password even when they have Discord linked
 # (for when players lose Discord access)
 # Players can set a password and use it to verify instead of Discord when they lost access to their account
@@ -64,54 +54,52 @@ max-login-attempts: 3
 
 
 # +--------------------------------------------------------------------------+
-# |          ------====== AUTHENTICATION SKIP SETTINGS ======------          |
+# |            ------====== AUTHENTICATION SETTINGS ======------             |
 # +--------------------------------------------------------------------------+
-# | Authentication Skip Settings                                             |
-# | Control who needs to authenticate and who can skip the login process     |
-# |                                                                          |
-# | - A user does not need to authenticate if any of the enabled skip rules  |
-# | apply to them                                                            |
-# | - A user won't have to register if "require-registration" is false for   |
-# | !any! of the skip rules that apply to them.                              |
-# | (They will still be required to register if all of them are False)       |
-# |                                                                          |
+# | Each group below can be set to one of these modes:                       |
+# | - disabled    -> do not check this group                                 |
+# | - force       -> always require authentication                           |
+# | - skip-login  -> skip login, but still require an account to exist       |
+# | - no-register -> skip login and registration completely                  |
 # +--------------------------------------------------------------------------+
 
 authentication-skip:
-  # Skip authentication for premium (Microsoft/Mojang authenticated) accounts
-  # Only applies when the player joins with proper Microsoft authentication
-  # Offline mode players will still be required to login
-  skip-premium-accounts:
-    enabled: true
-    # Require premium accounts to still register initially (even if they skip login later)
-    require-registration: true
-  
-  # Skip authentication when player's IP matches their last known IP
-  # This provides convenience for players connecting from the same location
-  skip-matching-ip:
-    enabled: true
-    # Require players to still register initially (even if they skip login later)
-    require-registration: true
-  
-  # Skip authentication for specific players (DEBUG ONLY - NOT RECOMMENDED)
-  # Players listed here will never be asked to authenticate
-  # Use player usernames (case-sensitive)
-  skip-specific-players:
-    enabled: false
-    # Require these players to still register initially
-    require-registration: false
-    players:
-      - "DebugPlayer1"
-      - "TestAccount"
-  
-  # Force authentication overrides
-  # Players matching these criteria MUST authenticate even if skip rules apply
-  force-authentication:
-    # Force OPs to always authenticate regardless of skip rules
-    force-ops: true
-    # Force players with specific permission to always authenticate
-    # Permission: discordauth.force.login
-    force-permission: true
+  # Top-level fallback used whenever a player doesn't match any group.
+  default-mode: "force"
+
+  # Top-level fallback for password access when a player doesn't match any group.
+  # Values: discord, password, both, disabled
+  password-feature-default: "both"
+
+  # Operators can be forced, skipped, or disabled
+  operators: "force"
+  operators-password-feature: "disabled"
+
+  # Players whose current IP matches the IP stored on their account
+  known-ip: "skip-login"
+  known-ip-password-feature: "disabled"
+
+  # Specific players with per-player modes
+  # Use name, player, or username as the key for each entry
+  specific-players:
+    - name: "DebugPlayer1"
+      mode: "disabled"
+      password-feature: "disabled"
+
+    - name: "TestAccount"
+      mode: "disabled"
+      password-feature: "disabled"
+
+  # Bedrock players detected through Floodgate or Geyser, when available
+  bedrock-players: "disabled"
+  bedrock-players-password-feature: "disabled"
+
+  # Premium Java players. On offline-mode servers, this only works when the
+  # server or proxy still exposes a premium UUID for the session.
+  premium-users: "disabled"
+  premium-users-password-feature: "disabled"
+
+# Removed global password toggles; use the authentication-skip settings above.
 
 # +---------------------------------------------------------------------------+
 # |       ------====== EXPIREMENTAL/ADVANCED SETTINGS ======------            |

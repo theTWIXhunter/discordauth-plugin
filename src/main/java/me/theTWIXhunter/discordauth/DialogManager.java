@@ -65,7 +65,8 @@ public class DialogManager {
      * Called on first join when no record exists.
      */
     public void showAuthenticationChoiceDialog(Player player) {
-        boolean allowPasswordOnly = plugin.getConfig().getBoolean("allow-password-only-registration", false);
+        boolean allowDiscord = canUseDiscordRegistration(player);
+        boolean allowPassword = canUsePasswordFeature(player);
 
         ActionButton discordBtn = ActionButton.builder(
                 Component.text("Discord 2FA", NamedTextColor.BLUE, TextDecoration.BOLD))
@@ -82,34 +83,18 @@ public class DialogManager {
             ))
             .build();
 
-        boolean allowDiscord = plugin.getConfig().getBoolean("allow-discord-registration", true);
-        // Password button: show always, but disabled action if not allowed
         ActionButton passwordBtn = ActionButton.builder(
-                allowPasswordOnly
-                    ? Component.text("Password",
-                        NamedTextColor.GOLD, TextDecoration.BOLD)
-                    : Component.text("Password (disabled)", NamedTextColor.DARK_GRAY))
-            .tooltip(allowPasswordOnly
-                ? Component.text("Set a password — no Discord needed", NamedTextColor.GRAY)
-                : Component.text("Password-only registration is disabled on this server", NamedTextColor.RED))
-            .action(allowPasswordOnly
-                ? DialogAction.customClick(
-                    (view, audience) -> {
-                        if (!(audience instanceof Player p)) return;
-                        plugin.getServer().getScheduler().runTask(plugin, () -> {
-                            p.closeInventory();
-                            showPasswordSetupDialog(p);
-                        });
-                    },
-                    ClickCallback.Options.builder().uses(1).build())
-                : DialogAction.customClick(
-                    (view, audience) -> {
-                        if (!(audience instanceof Player p)) return;
-                        p.sendMessage(Component.text(
-                            "Password-only registration is disabled on this server.",
-                            NamedTextColor.RED));
-                    },
-                    ClickCallback.Options.builder().uses(1).build()))
+                Component.text("I don't have Discord", NamedTextColor.GOLD, TextDecoration.BOLD))
+            .tooltip(Component.text("Register with a password instead of Discord", NamedTextColor.GRAY))
+            .action(DialogAction.customClick(
+                (view, audience) -> {
+                    if (!(audience instanceof Player p)) return;
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        p.closeInventory();
+                        showPasswordSetupDialog(p);
+                    });
+                },
+                ClickCallback.Options.builder().uses(1).build()))
             .build();
 
         ActionButton cancelChoiceBtn = ActionButton.builder(Component.text("Cancel", NamedTextColor.RED))
@@ -126,22 +111,31 @@ public class DialogManager {
             ))
             .build();
 
+        java.util.List<ActionButton> buttons = new java.util.ArrayList<>();
+        if (allowDiscord) buttons.add(discordBtn);
+        if (allowPassword) buttons.add(passwordBtn);
+        if (buttons.isEmpty()) {
+            buttons.add(ActionButton.builder(Component.text("No methods", NamedTextColor.DARK_GRAY))
+                .tooltip(Component.text("No authentication methods are available for your account", NamedTextColor.RED))
+                .action(DialogAction.customClick((view, audience) -> {
+                    if (audience instanceof Player p) {
+                        p.sendMessage(Component.text("No authentication methods are available for your account.", NamedTextColor.RED));
+                    }
+                }, ClickCallback.Options.builder().uses(1).build()))
+                .build());
+        }
+        buttons.add(cancelChoiceBtn);
+
         Dialog dialog = Dialog.create(b -> b.empty()
             .base(DialogBase.builder(
                     Component.text("Authentication Required", NamedTextColor.DARK_PURPLE, TextDecoration.BOLD))
                 .canCloseWithEscape(false)
                 .body(List.of(
                     DialogBody.plainMessage(Component.text(
-                        "This server requires authentication.\n" +
-                        "Please choose your method below.", NamedTextColor.GRAY)),
-                    DialogBody.plainMessage(Component.text(
-                        "Discord 2FA  —  most secure, recommended", NamedTextColor.GREEN)),
-                    DialogBody.plainMessage(Component.text(
-                        "Password  —  works without Discord",
-                        allowPasswordOnly ? NamedTextColor.YELLOW : NamedTextColor.DARK_GRAY))
+                        "This server requires authentication.\nPlease choose an available method below.", NamedTextColor.GRAY))
                 ))
                 .build())
-            .type(DialogType.multiAction(List.of(discordBtn, passwordBtn, cancelChoiceBtn)).columns(2).build())
+            .type(DialogType.multiAction(buttons).columns(buttons.size() > 2 ? 2 : 1).build())
         );
 
         player.showDialog(dialog);
@@ -408,6 +402,11 @@ public class DialogManager {
      * Show the password setup dialog (first-time registration).
      */
     public void showPasswordSetupDialog(Player player) {
+        if (!canUsePasswordFeature(player)) {
+            player.sendMessage(Component.text("Password registration is disabled for your account.", NamedTextColor.RED));
+            showAuthenticationChoiceDialog(player);
+            return;
+        }
         showPasswordSetupDialog(player, null);
     }
 
@@ -700,7 +699,8 @@ public class DialogManager {
                 },
                 ClickCallback.Options.builder().uses(1).build()))
             .build());
-        buttons.add(buildPasswordFallbackButton(player, 120));
+        ActionButton passwordFallback = buildPasswordFallbackButton(player, 120);
+        if (passwordFallback != null) buttons.add(passwordFallback);
 
         final List<DialogBody> fb = bodies;
         final List<ActionButton> fbt = buttons;
@@ -748,7 +748,8 @@ public class DialogManager {
         List<ActionButton> buttons = new ArrayList<>();
         buttons.add(submitBtn);
         buttons.add(buildSwitchToKeypadButton(player));
-        buttons.add(buildPasswordFallbackButton(player, 150));
+        ActionButton passwordFallback = buildPasswordFallbackButton(player, 150);
+        if (passwordFallback != null) buttons.add(passwordFallback);
         buttons.add(buildResendButton(player));
 
         final List<DialogBody> fb = bodies;
@@ -836,8 +837,8 @@ public class DialogManager {
     }
 
     private void handleBackupPasswordFor2FA(Player player, String password) {
-        if (!plugin.getConfig().getBoolean("enable-backup-password", true)) {
-            player.sendMessage(Component.text("Backup passwords are disabled on this server.", NamedTextColor.RED));
+        if (!isPasswordFeatureAllowed(player)) {
+            player.sendMessage(Component.text("Backup passwords are disabled for your account.", NamedTextColor.RED));
             showCodeVerificationDialog(player);
             return;
         }
@@ -1065,26 +1066,21 @@ public class DialogManager {
     }
 
     private ActionButton buildPasswordFallbackButton(Player player, int width) {
-        boolean available = plugin.getConfig().getBoolean("enable-backup-password", true)
+        boolean available = canUsePasswordFeature(player)
             && passwordManager.hasPassword(player.getUniqueId());
+        if (!available) {
+            return null;
+        }
         return ActionButton.builder(
-                available
-                    ? Component.text("Use password", NamedTextColor.YELLOW)
-                    : Component.text("No password set", NamedTextColor.GRAY))
+                Component.text("Use password", NamedTextColor.YELLOW))
             .width(width)
-            .tooltip(available
-                ? Component.text("Use your backup password instead of the 2FA code", NamedTextColor.GRAY)
-                : Component.text("Set a backup password with /password set", NamedTextColor.GRAY))
+            .tooltip(Component.text("Use your backup password instead of the 2FA code", NamedTextColor.GRAY))
             .action(DialogAction.customClick(
                 (view, audience) -> {
                     if (!(audience instanceof Player p)) return;
                     plugin.getServer().getScheduler().runTask(plugin, () -> {
                         p.closeInventory();
-                        if (available) {
-                            showBackupPasswordDialogFor2FA(p);
-                        } else {
-                            showSetupBackupPasswordDialog(p);
-                        }
+                        showBackupPasswordDialogFor2FA(p);
                     });
                 },
                 ClickCallback.Options.builder().uses(1).build()
@@ -1239,6 +1235,11 @@ public class DialogManager {
     }
 
     private void handlePasswordSubmission(Player player, String password, String confirm) {
+        if (!canUsePasswordFeature(player)) {
+            player.sendMessage(Component.text("Password registration is disabled for your account.", NamedTextColor.RED));
+            showAuthenticationChoiceDialog(player);
+            return;
+        }
         if (password == null || password.isBlank() || confirm == null || confirm.isBlank()) {
             showPasswordSetupDialog(player, "Please fill in both password fields.");
             return;
@@ -1273,6 +1274,18 @@ public class DialogManager {
     // ──────────────────────────────────────────────────────────────────────────
     // Helpers
     // ──────────────────────────────────────────────────────────────────────────
+
+    private boolean isPasswordFeatureAllowed(Player player) {
+        return canUsePasswordFeature(player);
+    }
+
+    private boolean canUseDiscordRegistration(Player player) {
+        return joinListener == null || joinListener.canUseDiscordRegistration(player);
+    }
+
+    private boolean canUsePasswordFeature(Player player) {
+        return joinListener == null || joinListener.canUsePasswordFeature(player);
+    }
 
     // ──────────────────────────────────────────────────────────────────────────────
     // Password reset flow (triggered from backup-password dialog)

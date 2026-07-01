@@ -37,6 +37,18 @@ public class JoinListener implements Listener {
     private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> timeoutTasks = new java.util.HashMap<>();
     private final java.util.Map<java.util.UUID, Integer> failedLoginAttempts = new java.util.HashMap<>();
 
+    private enum AuthSkipMode {
+        FORCE,
+        SKIP_LOGIN,
+        NO_REGISTER
+    }
+
+    private enum PasswordAccessMode {
+        DISCORD,
+        PASSWORD,
+        BOTH
+    }
+
     public JoinListener(DiscordAuthPlugin plugin, VerificationManager verificationManager, PlayerDataManager dataManager, BackupPasswordManager passwordManager, DialogManager dialogManager) {
         this.plugin = plugin;
         this.verificationManager = verificationManager;
@@ -50,32 +62,30 @@ public class JoinListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         failedLoginAttempts.remove(player.getUniqueId());
-        
+
         // Check if bot token is configured and valid - show error but don't kick
         if (!plugin.getDiscordService().isBotTokenValid()) {
             player.sendMessage(lang.getComponent("bot-token-not-configured"));
             return;
         }
-        
+
         PlayerDataManager.PlayerRecord record = dataManager.getRecord(player.getUniqueId());
         String currentIp = getPlayerIp(player);
-        // Force auth if server config says so, OR if the player enabled always-require-2FA
-        boolean forced = isForceAuthRequired(player) || (record != null && record.forceVerify);
+        AuthSkipMode skipMode = resolveAuthenticationSkipMode(player, record, currentIp);
+        boolean forced = (record != null && record.forceVerify) || skipMode == AuthSkipMode.FORCE;
 
-        // ── Skip rules (only evaluated when NOT forced) ──────────────────────
-        if (!forced && canSkipAuth(player, record, currentIp)) {
+        if (!forced && skipMode == AuthSkipMode.NO_REGISTER) {
+            player.sendMessage(lang.getComponent("already-verified"));
+            return;
+        }
+
+        if (!forced && skipMode == AuthSkipMode.SKIP_LOGIN && record != null) {
             player.sendMessage(lang.getComponent("already-verified"));
             return;
         }
 
         // ── Existing registered account — needs re-authentication ─────────────
         if (record != null && record.discordId != null) {
-            // If skip-matching-ip is disabled but IP still matches, let them in
-            // (when the skip is enabled it would have fired in canSkipAuth above)
-            if (!forced && currentIp.equals(record.lastIp)) {
-                player.sendMessage(lang.getComponent("already-verified"));
-                return;
-            }
             {  // re-auth block
                 // IP changed - save current gamemode and lock player down
                 savedGameModes.put(player.getUniqueId(), player.getGameMode());
@@ -97,8 +107,8 @@ public class JoinListener implements Listener {
                     return;
                 }
 
-                player.sendMessage(lang.getComponent("verification-code-sent"));
-                
+                    player.sendMessage(lang.getComponent("verification-code-sent"));
+
                 Verification v = verificationManager.createVerification(player.getUniqueId(), record.discordId, currentIp);
                 if (v != null && v.code.equals("MAX_ACCOUNTS_REACHED")) {
                     // Max accounts reached - show message and kick
@@ -108,13 +118,13 @@ public class JoinListener implements Listener {
                     for (int i = 0; i < names.size(); i++) {
                         accountsList.append("&7").append(i + 1).append(". &e").append(names.get(i)).append("\n");
                     }
-                    
+
                     java.util.Map<String, String> replacements = new java.util.HashMap<>();
                     replacements.put("max", String.valueOf(maxAccounts));
                     replacements.put("accounts", accountsList.toString().trim());
-                    
+
                     player.sendMessage(lang.getComponent("max-accounts-reached", replacements));
-                    
+
                     String kickMsg = lang.getRawMessage("kick-max-accounts")
                         .replace("{max}", String.valueOf(maxAccounts));
                     org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -131,7 +141,7 @@ public class JoinListener implements Listener {
                     String discordInvite = plugin.getConfig().getString("discord-invite", "https://discord.gg/YOUR_INVITE_CODE");
                     player.sendMessage(lang.getComponent("dm-failed-instructions"));
                     player.sendMessage(Component.text(discordInvite, NamedTextColor.AQUA));
-                    
+
                     String kickMsg = "Failed to send verification code. Please join our Discord at " + discordInvite + " or enable DMs, then rejoin.";
                     org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         cancelVerificationTimeout(player.getUniqueId());
@@ -141,7 +151,7 @@ public class JoinListener implements Listener {
                 return;
             }
         }
-        
+
         // Not registered — lock and show registration
         savedGameModes.put(player.getUniqueId(), player.getGameMode());
         player.setGameMode(GameMode.ADVENTURE);
@@ -150,7 +160,7 @@ public class JoinListener implements Listener {
         showRegistrationForm(player);
         startVerificationTimeout(player);
     }
-    
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
         // Clean up timeout task when player disconnects
@@ -159,7 +169,7 @@ public class JoinListener implements Listener {
         failedLoginAttempts.remove(event.getPlayer().getUniqueId());
         dialogManager.clearEnteredCode(event.getPlayer().getUniqueId());
     }
-    
+
     private void showRegistrationForm(Player player) {
         dialogManager.showAuthenticationChoiceDialog(player);
     }
@@ -248,57 +258,258 @@ public class JoinListener implements Listener {
     }
 
     /**
-     * Returns true if this player must authenticate regardless of any skip rules.
-     * Checks force-ops and force-permission under authentication-skip.force-authentication.
+     * Returns the effective authentication skip mode for this player.
+     * If one or more groups match and all of them are disabled, returns null.
+     * If no group matches, returns the top-level default.
      */
-    private boolean isForceAuthRequired(Player player) {
+    private AuthSkipMode resolveAuthenticationSkipMode(Player player, PlayerDataManager.PlayerRecord record, String currentIp) {
         var cfg = plugin.getConfig();
-        if (cfg.getBoolean("authentication-skip.force-authentication.force-ops", false)
-                && player.isOp()) {
-            return true;
+
+        AuthSkipMode defaultMode = parseSkipMode(cfg.getString("authentication-skip.default-mode", "force"));
+        AuthSkipMode result = null;
+        boolean matchedAny = false;
+
+        if (player.isOp()) {
+            matchedAny = true;
+            result = combineSkipModes(result, parseSkipMode(cfg.getString("authentication-skip.operators", "disabled")));
         }
-        if (cfg.getBoolean("authentication-skip.force-authentication.force-permission", false)
-                && player.hasPermission("discordauth.force.login")) {
-            return true;
+
+        if (record != null && record.discordId != null && currentIp.equals(record.lastIp)) {
+            matchedAny = true;
+            result = combineSkipModes(result, parseSkipMode(cfg.getString("authentication-skip.known-ip", "disabled")));
         }
+
+        AuthSkipMode specificPlayerMode = resolveSpecificPlayerMode(player);
+        if (specificPlayerMode != null) {
+            matchedAny = true;
+            result = combineSkipModes(result, specificPlayerMode);
+        }
+
+        if (isBedrockPlayer(player)) {
+            matchedAny = true;
+            result = combineSkipModes(result, parseSkipMode(cfg.getString("authentication-skip.bedrock-players", "disabled")));
+        }
+
+        if (isPremiumPlayer(player)) {
+            matchedAny = true;
+            result = combineSkipModes(result, parseSkipMode(cfg.getString("authentication-skip.premium-users", "disabled")));
+        }
+
+        return matchedAny ? result : defaultMode;
+    }
+
+    public boolean isPasswordFeatureAllowed(Player player) {
+        return canUsePasswordFeature(player);
+    }
+
+    public boolean canUseDiscordRegistration(Player player) {
+        PlayerDataManager.PlayerRecord record = dataManager.getRecord(player.getUniqueId());
+        return allowsDiscord(resolvePasswordAccessMode(player, record, getPlayerIp(player)));
+    }
+
+    public boolean canUsePasswordFeature(Player player) {
+        PlayerDataManager.PlayerRecord record = dataManager.getRecord(player.getUniqueId());
+        return allowsPassword(resolvePasswordAccessMode(player, record, getPlayerIp(player)));
+    }
+
+    private PasswordAccessMode resolvePasswordAccessMode(Player player, PlayerDataManager.PlayerRecord record, String currentIp) {
+        var cfg = plugin.getConfig();
+
+        PasswordAccessMode defaultMode = parsePasswordAccessMode(cfg.getString("authentication-skip.password-feature-default", "both"));
+        PasswordAccessMode result = null;
+        boolean matchedAny = false;
+
+        if (player.isOp()) {
+            matchedAny = true;
+            result = combinePasswordAccessModes(result, parsePasswordAccessMode(cfg.getString("authentication-skip.operators-password-feature", "disabled")));
+        }
+
+        if (record != null && record.discordId != null && currentIp.equals(record.lastIp)) {
+            matchedAny = true;
+            result = combinePasswordAccessModes(result, parsePasswordAccessMode(cfg.getString("authentication-skip.known-ip-password-feature", "disabled")));
+        }
+
+        PasswordAccessMode specificPlayerMode = resolveSpecificPlayerPasswordAccessMode(player);
+        if (specificPlayerMode != null) {
+            matchedAny = true;
+            result = combinePasswordAccessModes(result, specificPlayerMode);
+        }
+
+        if (isBedrockPlayer(player)) {
+            matchedAny = true;
+            result = combinePasswordAccessModes(result, parsePasswordAccessMode(cfg.getString("authentication-skip.bedrock-players-password-feature", "disabled")));
+        }
+
+        if (isPremiumPlayer(player)) {
+            matchedAny = true;
+            result = combinePasswordAccessModes(result, parsePasswordAccessMode(cfg.getString("authentication-skip.premium-users-password-feature", "disabled")));
+        }
+
+        return matchedAny ? result : defaultMode;
+    }
+
+    private PasswordAccessMode resolveSpecificPlayerPasswordAccessMode(Player player) {
+        java.util.List<java.util.Map<?, ?>> entries = plugin.getConfig().getMapList("authentication-skip.specific-players");
+        PasswordAccessMode result = null;
+
+        for (java.util.Map<?, ?> entry : entries) {
+            String configuredName = extractSpecificPlayerName(entry);
+            if (configuredName == null || player.getName() == null || !player.getName().equalsIgnoreCase(configuredName)) {
+                continue;
+            }
+
+            Object rawMode = entry.get("password-feature");
+            result = combinePasswordAccessModes(result, parsePasswordAccessMode(rawMode != null ? rawMode.toString() : null));
+        }
+
+        return result;
+    }
+
+    private PasswordAccessMode parsePasswordAccessMode(String rawMode) {
+        if (rawMode == null) {
+            return null;
+        }
+
+        String normalized = rawMode.trim().toLowerCase(java.util.Locale.ROOT);
+        return switch (normalized) {
+            case "discord" -> PasswordAccessMode.DISCORD;
+            case "password" -> PasswordAccessMode.PASSWORD;
+            case "both" -> PasswordAccessMode.BOTH;
+            case "disabled", "default", "" -> null;
+            default -> null;
+        };
+    }
+
+    private PasswordAccessMode combinePasswordAccessModes(PasswordAccessMode current, PasswordAccessMode candidate) {
+        if (candidate == null) {
+            return current;
+        }
+        if (current == null) {
+            return candidate;
+        }
+        if (current == candidate) {
+            return current;
+        }
+        return PasswordAccessMode.BOTH;
+    }
+
+    private boolean allowsDiscord(PasswordAccessMode mode) {
+        return mode == PasswordAccessMode.DISCORD || mode == PasswordAccessMode.BOTH;
+    }
+
+    private boolean allowsPassword(PasswordAccessMode mode) {
+        return mode == PasswordAccessMode.PASSWORD || mode == PasswordAccessMode.BOTH;
+    }
+
+    private AuthSkipMode resolveSpecificPlayerMode(Player player) {
+        java.util.List<java.util.Map<?, ?>> entries = plugin.getConfig().getMapList("authentication-skip.specific-players");
+        AuthSkipMode result = null;
+
+        for (java.util.Map<?, ?> entry : entries) {
+            String configuredName = extractSpecificPlayerName(entry);
+            if (configuredName == null || player.getName() == null || !player.getName().equalsIgnoreCase(configuredName)) {
+                continue;
+            }
+
+            Object rawMode = entry.get("mode");
+            result = combineSkipModes(result, parseSkipMode(rawMode != null ? rawMode.toString() : null));
+        }
+
+        return result;
+    }
+
+    private String extractSpecificPlayerName(java.util.Map<?, ?> entry) {
+        Object name = entry.get("name");
+        if (name == null) {
+            name = entry.get("player");
+        }
+        if (name == null) {
+            name = entry.get("username");
+        }
+        return name != null ? name.toString().trim() : null;
+    }
+
+    private AuthSkipMode parseSkipMode(String rawMode) {
+        if (rawMode == null) {
+            return null;
+        }
+
+        String normalized = rawMode.trim().toLowerCase(java.util.Locale.ROOT);
+        return switch (normalized) {
+            case "force" -> AuthSkipMode.FORCE;
+            case "skip-login" -> AuthSkipMode.SKIP_LOGIN;
+            case "no-register" -> AuthSkipMode.NO_REGISTER;
+            case "disabled", "default", "" -> null;
+            default -> null;
+        };
+    }
+
+    private AuthSkipMode combineSkipModes(AuthSkipMode current, AuthSkipMode candidate) {
+        if (candidate == null) {
+            return current;
+        }
+        if (current == null) {
+            return candidate;
+        }
+        if (current == AuthSkipMode.FORCE || candidate == AuthSkipMode.FORCE) {
+            return AuthSkipMode.FORCE;
+        }
+        if (current == AuthSkipMode.NO_REGISTER || candidate == AuthSkipMode.NO_REGISTER) {
+            return AuthSkipMode.NO_REGISTER;
+        }
+        return AuthSkipMode.SKIP_LOGIN;
+    }
+
+    private boolean isPremiumPlayer(Player player) {
+        return player.getUniqueId().version() == 4;
+    }
+
+    private boolean isBedrockPlayer(Player player) {
+        Boolean floodgate = queryFloodgateApi(player.getUniqueId());
+        if (floodgate != null) {
+            return floodgate;
+        }
+
+        Boolean geyser = queryGeyserApi(player.getUniqueId());
+        if (geyser != null) {
+            return geyser;
+        }
+
         return false;
     }
 
-    /**
-     * Returns true if any active skip rule allows this player to bypass authentication.
-     * Never call this when {@link #isForceAuthRequired(Player)} is true.
-     */
-    private boolean canSkipAuth(Player player, PlayerDataManager.PlayerRecord record, String currentIp) {
-        var cfg = plugin.getConfig();
-
-        // skip-specific-players
-        if (cfg.getBoolean("authentication-skip.skip-specific-players.enabled", false)) {
-            if (cfg.getStringList("authentication-skip.skip-specific-players.players")
-                    .contains(player.getName())) {
-                boolean requireReg = cfg.getBoolean(
-                    "authentication-skip.skip-specific-players.require-registration", false);
-                if (!requireReg || (record != null && record.discordId != null)) return true;
+    private Boolean queryFloodgateApi(java.util.UUID uuid) {
+        try {
+            Class<?> apiClass = Class.forName("org.geysermc.floodgate.api.FloodgateApi");
+            java.lang.reflect.Method getInstance = apiClass.getMethod("getInstance");
+            Object api = getInstance.invoke(null);
+            if (api == null) {
+                return null;
             }
-        }
 
-        // skip-premium-accounts — Mojang UUIDs are version 4; offline-computed UUIDs are version 3
-        if (cfg.getBoolean("authentication-skip.skip-premium-accounts.enabled", false)) {
-            if (player.getUniqueId().version() == 4) {
-                boolean requireReg = cfg.getBoolean(
-                    "authentication-skip.skip-premium-accounts.require-registration", true);
-                if (!requireReg || (record != null && record.discordId != null)) return true;
+            java.lang.reflect.Method isFloodgatePlayer = api.getClass().getMethod("isFloodgatePlayer", java.util.UUID.class);
+            Object result = isFloodgatePlayer.invoke(api, uuid);
+            return result instanceof Boolean ? (Boolean) result : null;
+        } catch (ReflectiveOperationException | LinkageError ignored) {
+            return null;
+        }
+    }
+
+    private Boolean queryGeyserApi(java.util.UUID uuid) {
+        try {
+            Class<?> apiClass = Class.forName("org.geysermc.geyser.api.GeyserApi");
+            java.lang.reflect.Method apiMethod = apiClass.getMethod("api");
+            Object api = apiMethod.invoke(null);
+            if (api == null) {
+                return null;
             }
-        }
 
-        // skip-matching-ip
-        if (cfg.getBoolean("authentication-skip.skip-matching-ip.enabled", true)) {
-            if (record != null && record.discordId != null && currentIp.equals(record.lastIp)
-                    && !record.forceVerify) {
-                return true; // require-registration is implicitly satisfied: record already exists
-            }
+            java.lang.reflect.Method isBedrockPlayer = api.getClass().getMethod("isBedrockPlayer", java.util.UUID.class);
+            Object result = isBedrockPlayer.invoke(api, uuid);
+            return result instanceof Boolean ? (Boolean) result : null;
+        } catch (ReflectiveOperationException | LinkageError ignored) {
+            return null;
         }
-
-        return false;
     }
 
     /**
@@ -389,39 +600,39 @@ public class JoinListener implements Listener {
             }
         }
     }
-    
+
     /**
      * Start the verification timeout for a player.
      * If enabled in config, kicks the player after the timeout period.
      */
     private void startVerificationTimeout(Player player) {
         int timeoutSeconds = plugin.getConfig().getInt("verification-timeout", 600);
-        
+
         // 0 means disabled
         if (timeoutSeconds <= 0) {
             return;
         }
-        
+
         // Cancel any existing timeout
         cancelVerificationTimeout(player.getUniqueId());
-        
+
         // Schedule timeout task
         org.bukkit.scheduler.BukkitTask task = org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline() && !isVerified(player)) {
                 player.sendMessage(lang.getComponent("verification-timeout"));
                 String kickMsg = lang.getKickTimeoutMessage();
-                
+
                 // Clean up
                 savedGameModes.remove(player.getUniqueId());
                 timeoutTasks.remove(player.getUniqueId());
-                
+
                 player.kick(Component.text(kickMsg));
             }
         }, timeoutSeconds * 20L); // Convert seconds to ticks
-        
+
         timeoutTasks.put(player.getUniqueId(), task);
     }
-    
+
     /**
      * Cancel the verification timeout for a player.
      */

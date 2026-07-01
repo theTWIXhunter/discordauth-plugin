@@ -46,7 +46,7 @@ public class DiscordAuthPlugin extends JavaPlugin {
         getCommand("discordauth").setExecutor(commandHandler);
         getCommand("discordauth").setTabCompleter(commandHandler);
         
-        PasswordCommand passwordCommandHandler = new PasswordCommand(this, dataManager, passwordManager, discordService);
+        PasswordCommand passwordCommandHandler = new PasswordCommand(this, dataManager, passwordManager, discordService, joinListener);
         getCommand("password").setExecutor(passwordCommandHandler);
         getCommand("password").setTabCompleter(passwordCommandHandler);
         

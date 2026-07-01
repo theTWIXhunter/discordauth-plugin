@@ -1,13 +1,13 @@
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\DialogManager.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\LanguageManager.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\PlayerDataManager.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\UnlinkCommand.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\DiscordAuthCommand.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\Verification.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\BackupPasswordManager.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\VerificationManager.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\JoinListener.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\LogoutCommand.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\PasswordCommand.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\DiscordAuthPlugin.java
-C:\Users\JonasScheers\OneDrive - Berthoutinstituut - Klein Seminarie\Bureaublad\projects\discordauth-plugin\discordauth-plugin\src\main\java\me\theTWIXhunter\discordauth\DiscordService.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/BackupPasswordManager.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/Verification.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/JoinListener.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/PlayerDataManager.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/DiscordAuthPlugin.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/VerificationManager.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/UnlinkCommand.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/DialogManager.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/DiscordService.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/DiscordAuthCommand.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/PasswordCommand.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/LogoutCommand.java
+/home/jonas/projects/discordauth-plugin/src/main/java/me/theTWIXhunter/discordauth/LanguageManager.java
